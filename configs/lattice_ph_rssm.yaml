@@ -1,0 +1,57 @@
+# Configuration principale : Port-Hamiltonian RSSM sur réseau élastique couplé 2D
+# Main configuration: Port-Hamiltonian RSSM on 2D Coupled Elastic Lattice
+experiment:
+  name: "ph_rssm_coupled_lattice_3x3"
+  seed: 42
+  device: "auto" # "cuda", "cpu", or "auto"
+  checkpoint_dir: "checkpoints/ph_rssm_lattice"
+
+physics:
+  grid_size: 3 # Grille 3x3 -> 9 masses -> dim(q) = 18, dim(x) = 36 / 3x3 grid -> 9 masses -> dim(q) = 18
+  dt: 0.02 # Pas d'intégration temporelle (s) / Integration time step (s)
+  mass: 1.0 # Masse nominale (kg) / Nominal mass (kg)
+  k_linear: 4.0 # Raideur linéaire des ressorts / Linear spring stiffness
+  k_cubic: 1.5 # Non-linéarité cubique FPUT / Cubic FPUT nonlinearity
+  k_anchor: 0.5 # Potentiel de confinement harmonique / Harmonic confinement potential
+  damping: 0.06 # Coefficient de dissipation visqueuse / Viscous damping coefficient
+  obs_noise_std: 0.01 # Écart-type du bruit capteur / Sensor noise standard deviation
+  partial_observability: false # Si true, masque les moments p dans l'observation / If true, hides momenta p
+
+dataset:
+  num_train_episodes: 400
+  num_val_episodes: 80
+  episode_length: 80
+  sequence_chunk_len: 32 # Longueur des sous-séquences d'entraînement / Training chunk length
+  control_scale: 0.55 # Amplitude nominale du contrôle externe u_t / Nominal external control amplitude
+  control_correlation: 0.85 # Autocorrélation temporelle AR(1) de u_t / Temporal AR(1) autocorrelation
+
+model:
+  n_dof: 18 # Doit égaler 2 * grid_size^2 / Must equal 2 * grid_size^2
+  u_dim: 18 # Dimension de l'action externe / External action dimension
+  deter_dim: 128 # Dimension de l'état déterministe GRU h_t / Deterministic GRU state h_t dim
+  stoch_dim: 32 # Dimension de l'état stochastique s_t / Stochastic latent state s_t dim
+  hidden_dim: 192 # Largeur des MLP internes / Internal MLP hidden width
+  integrator_type: "rk4" # Choix: "rk4", "leapfrog", "midpoint" / Choice: "rk4", "leapfrog", "midpoint"
+  use_state_dependent_j: true # Autorise J(x) dépendant de l'état (Poisson) / Allows state-dependent J(x)
+  use_lagrangian_dual: true # Active le réseau Lagrangien auxiliaire L(q, q_dot) / Enables auxiliary LNN
+  eps_psd: 1.0e-3 # Régularisation strictement positive sur R(x) / Strict PSD floor on R(x)
+  residual_scale: 0.05 # Borne la correction non-hamiltonienne / Bounds non-Hamiltonian residual
+
+training:
+  batch_size: 32
+  num_epochs: 60
+  learning_rate: 1.2e-3
+  weight_decay: 1.0e-4
+  grad_clip_norm: 5.0
+  kl_beta_start: 0.005 # Warm-up KL initial / Initial KL warm-up weight
+  kl_beta_end: 0.08 # Poids KL cible / Target KL weight
+  kl_warmup_epochs: 15
+  kl_free_nats: 1.0 # Seuil free-nats pour éviter le posterior collapse / Free-nats threshold
+  imagination_horizon: 16 # Horizon du rollout imaginaire pendant le train / Imagination rollout horizon
+  loss_weights:
+    reconstruction: 1.0
+    imagination: 0.65
+    energy_consistency: 0.25 # Cohérence du bilan dH/dt = -grad_H^T R grad_H + grad_H^T g u
+    passivity_penalty: 10.0
+    lagrangian_consistency: 0.10
+    symplectic_reg: 0.05
