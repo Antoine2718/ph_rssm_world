@@ -1,0 +1,66 @@
+# Configuration des benchmarks Hors-Distribution (OOD)
+# Out-Of-Distribution (OOD) Benchmark Configurations
+evaluation:
+  num_episodes: 64
+  seed: 2026
+
+scenarios:
+  in_distribution_baseline:
+    description: "Régime nominal identique à l'entraînement / Nominal regime matching training"
+    horizon: 60
+    dt: 0.02
+    mass: 1.0
+    k_linear: 4.0
+    k_cubic: 1.5
+    damping: 0.06
+    control_scale: 0.55
+
+  long_horizon_extrapolation:
+    description: "Extrapolation temporelle 3x plus longue (180 pas) / 3x longer temporal horizon"
+    horizon: 180
+    dt: 0.02
+    mass: 1.0
+    k_linear: 4.0
+    k_cubic: 1.5
+    damping: 0.06
+    control_scale: 0.55
+
+  high_energy_nonlinear:
+    description: "Haute énergie activant fortement le terme cubique FPUT / High-energy cubic regime"
+    horizon: 90
+    dt: 0.02
+    mass: 1.0
+    k_linear: 4.0
+    k_cubic: 1.5
+    damping: 0.06
+    control_scale: 1.35
+
+  conservative_zero_control:
+    description: "Système isolé sans frottement ni contrôle (test symplectomorphie) / Isolated conservative test"
+    horizon: 150
+    dt: 0.02
+    mass: 1.0
+    k_linear: 4.0
+    k_cubic: 1.5
+    damping: 0.0
+    control_scale: 0.0
+
+  high_dissipation_regime:
+    description: "Frottement visqueux 4x supérieur / 4x stronger viscous dissipation"
+    horizon: 90
+    dt: 0.02
+    mass: 1.0
+    k_linear: 4.0
+    k_cubic: 1.5
+    damping: 0.24
+    control_scale: 0.65
+
+  time_step_generalization:
+    description: "Généralisation à un pas de temps dt = 0.01s (2x plus fin) / 2x finer dt = 0.01s"
+    horizon: 120
+    dt: 0.01
+    mass: 1.0
+    k_linear: 4.0
+    k_cubic: 1.5
+    damping: 0.06
+    control_scale: 0.55
